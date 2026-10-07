@@ -1,0 +1,2382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI based Intelligent PFMEA Auditor</title>
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Premium Light Theme Colors */
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #f1f5f9;
+      --bg-surface-subtle: #f8fafc;
+      --border-subtle: #e2e8f0;
+      --border-medium: #cbd5e1;
+      --border-accent: #3b82f6;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #6366f1;
+      --primary-bg: #eef2ff;
+      --accent-blue: #0284c7;
+      --accent-cyan: #0891b2;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #d97706;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --text-main: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      
+      /* Specific Highlight Rule: Solid Yellow Fill with Bold Red Text */
+      --violation-bg: #FFFF00;
+      --violation-text: #DC2626;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding-bottom: 70px;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 16px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+
+    .brand-logo svg {
+      width: 24px;
+      height: 24px;
+      fill: #ffffff;
+    }
+
+    .brand-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+    }
+
+    .brand-tagline {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border-subtle);
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+    }
+
+    .badge-status {
+      background-color: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #059669;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #059669;
+      box-shadow: 0 0 6px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    /* Container */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Upload & Action Card */
+    .upload-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 960px) {
+      .upload-card { grid-template-columns: 1fr; }
+    }
+
+    .dropzone-area {
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 32px 20px;
+      text-align: center;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .dropzone-area:hover, .dropzone-area.dragover {
+      border-color: var(--primary);
+      background: #eef2ff;
+      transform: translateY(-2px);
+    }
+
+    .dropzone-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--primary-bg);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dropzone-text h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .dropzone-text p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .file-selected-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: #e0f2fe;
+      border: 1px solid #7dd3fc;
+      border-radius: 9999px;
+      font-size: 13px;
+      color: #0369a1;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .action-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .instructions-box {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .instructions-box h4 {
+      font-size: 13px;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .instructions-box ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .instructions-box li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .instructions-box li span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--primary);
+    }
+
+    .rule-highlight-notice {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #92400e;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .rule-highlight-notice strong {
+      color: #b45309;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button.btn, a.btn {
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-medium);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--bg-surface-elevated);
+      border-color: #94a3b8;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Token Price & Cost Configuration Card */
+    .cost-config-card {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .cost-config-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cost-config-title h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .cost-config-title span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .cost-inputs-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .cost-input-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .cost-input-item input {
+      width: 80px;
+      padding: 6px 10px;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      background: #ffffff;
+      outline: none;
+      text-align: right;
+    }
+
+    .cost-input-item input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+    }
+
+    .form-select-styled {
+      padding: 6px 12px;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      background-color: #ffffff;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .form-select-styled:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+    }
+
+    .rule-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .rule-badge-prio {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .rule-badge-det {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    /* Live Progress Bar */
+    .progress-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .progress-status {
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4f46e5, #0284c7, #10b981);
+      border-radius: 9999px;
+      transition: width 0.3s ease;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+    }
+
+    .metric-card.accent-purple::before { background: linear-gradient(90deg, #4f46e5, #818cf8); }
+    .metric-card.accent-yellow::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .metric-card.accent-red::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .metric-card.accent-blue::before { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+    .metric-card.accent-green::before { background: linear-gradient(90deg, #059669, #34d399); }
+
+    .metric-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+    }
+
+    .metric-value {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Live Activity Console */
+    .console-section {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .console-body {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      height: 120px;
+      overflow-y: auto;
+      background: #0f172a;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: #94a3b8;
+    }
+
+    .console-line {
+      display: flex;
+      gap: 10px;
+    }
+
+    .console-time {
+      color: #64748b;
+      user-select: none;
+    }
+
+    .console-msg { color: #e2e8f0; }
+    .console-msg.success { color: #34d399; }
+    .console-msg.alert { color: #f87171; }
+    .console-msg.highlight { color: #fde047; }
+
+    /* Results Table Card */
+    .table-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .table-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-left h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .search-input {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--text-main);
+      width: 250px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+
+    .filter-select {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--text-main);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .table-container {
+      max-height: 540px;
+      overflow: auto;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      background: #ffffff;
+      position: relative;
+    }
+
+    table.data-table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+      text-align: left;
+      table-layout: fixed;
+    }
+
+    table.data-table th {
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      padding: 12px 14px;
+      border-bottom: 2px solid #cbd5e1;
+      border-right: 1px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+      user-select: none;
+      position: relative;
+      box-sizing: border-box;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    table.data-table th .resizer-handle {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 7px;
+      height: 100%;
+      cursor: col-resize;
+      user-select: none;
+      z-index: 20;
+      background: transparent;
+      transition: background-color 0.15s ease;
+    }
+
+    table.data-table th .resizer-handle:hover,
+    table.data-table th .resizer-handle.is-resizing {
+      background-color: var(--primary);
+      width: 7px;
+    }
+
+    table.data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      border-right: 1px solid #f1f5f9;
+      color: #1e293b;
+      vertical-align: middle;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      box-sizing: border-box;
+    }
+
+    table.data-table tr:nth-child(even) td {
+      background-color: #fafbfc;
+    }
+
+    table.data-table tr:hover td {
+      background-color: #f1f5f9;
+    }
+
+    /* Bottom Assumptions & Quality Disclaimer Section */
+    .assumptions-section {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      box-shadow: var(--shadow-sm);
+      margin-top: 32px;
+    }
+
+    .assumptions-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .assumptions-title-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .assumptions-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(217, 119, 6, 0.2);
+    }
+
+    .assumptions-title-group h3 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .assumptions-title-group p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .assumptions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .assumption-card {
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .assumption-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .assumption-card.alert-amber {
+      border-left: 4px solid #f59e0b;
+      background: #fffbeb;
+    }
+
+    .assumption-card.alert-blue {
+      border-left: 4px solid #3b82f6;
+      background: #eff6ff;
+    }
+
+    .assumption-card.alert-purple {
+      border-left: 4px solid #8b5cf6;
+      background: #f5f3ff;
+    }
+
+    .assumption-card.alert-teal {
+      border-left: 4px solid #0d9488;
+      background: #f0fdfa;
+    }
+
+    .assumption-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .assumption-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 9999px;
+      font-weight: 800;
+      font-size: 13px;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      color: #0f172a;
+    }
+
+    .assumption-card-header h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .assumption-text {
+      font-size: 13px;
+      line-height: 1.55;
+      color: #1e293b;
+    }
+
+    .assumption-note {
+      font-size: 12px;
+      line-height: 1.45;
+      color: #64748b;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(0,0,0,0.08);
+    }
+
+    /* CRITICAL HIGHLIGHT RULE */
+    /* Yellow fill with Red font on Pred Priority Level for Priority 1 with Pred Det > 4 */
+    td.violation-highlight {
+      background-color: var(--violation-bg) !important;
+      color: var(--violation-text) !important;
+      font-weight: 800 !important;
+      font-size: 14px !important;
+      text-align: center !important;
+      border: 2px solid #dc2626 !important;
+    }
+
+    .violation-badge {
+      display: inline-block;
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      text-transform: uppercase;
+    }
+
+    /* Red text for LLM mismatches / corrections */
+    .mismatch-text {
+      color: #dc2626 !important;
+      font-weight: 700 !important;
+      background: #fef2f2;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #fecaca;
+    }
+
+    /* Bottom Standards Section */
+    .standards-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .standards-header {
+      margin-bottom: 20px;
+    }
+
+    .standards-header h3 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .standards-header p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .standards-tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: #0f172a;
+      background: #e2e8f0;
+    }
+
+    .tab-btn.active {
+      color: #ffffff;
+      background: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .ref-table th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 2px solid #cbd5e1;
+      border-right: 1px solid #e2e8f0;
+      text-align: left;
+    }
+
+    .ref-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #e2e8f0;
+      border-right: 1px solid #f1f5f9;
+      color: #334155;
+    }
+
+    .ref-table tr:nth-child(even) td {
+      background-color: #fafbfc;
+    }
+
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .rank-high { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .rank-med { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+    .rank-low { background: #ecfdf5; color: #047857; border: 1px solid #6ee7b7; }
+
+    /* Matrix Table Specifics */
+    .matrix-grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .matrix-grid-table th {
+      background: #e2e8f0;
+      color: #1e293b;
+      padding: 8px;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+    }
+
+    .matrix-grid-table td {
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      font-weight: 700;
+    }
+
+    .zone-badge-1 { background-color: #fee2e2; color: #b91c1c; } /* Zone 1 - High */
+    .zone-badge-2 { background-color: #fef3c7; color: #b45309; } /* Zone 2 - Med */
+    .zone-badge-3 { background-color: #ecfdf5; color: #047857; } /* Zone 3 - Low */
+
+    /* Footer */
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand-group">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+      </div>
+      <div>
+        <h1 class="brand-title">AI based Intelligent PFMEA Auditor</h1>
+        <p class="brand-tagline">AIAG 4th Edition & AIAG-VDA Compliant Quality Agent</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-status">
+        <span class="status-dot"></span>
+        AI Auditor Active
+      </span>
+      <span class="badge">Model: GPT-5.4 Mini</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Upload & Actions Card -->
+    <div class="upload-card">
+      <div class="dropzone-area" id="dropzone">
+        <input type="file" id="file-input" accept=".xlsx,.xlsm,.xltx" style="display: none;">
+        <div class="dropzone-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </div>
+        <div class="dropzone-text">
+          <h3>Drop your PFMEA Excel File here</h3>
+          <p>Drag & drop or <span style="color: var(--primary); text-decoration: underline; font-weight: 600;">browse files</span> (.xlsx format)</p>
+        </div>
+        <div class="file-selected-badge" id="file-badge">
+          <span id="selected-file-name">filename.xlsx</span>
+        </div>
+      </div>
+
+      <div class="action-panel">
+        <div class="instructions-box">
+          <h4>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            Autonomous Execution Workflow
+          </h4>
+          <ul>
+            <li><span class="dot"></span> Once uploaded, the agent executes autonomously without manual script runs</li>
+            <li><span class="dot"></span> Live streaming outputs severity, detection reasoning, and recalculated RPN</li>
+            <li><span class="dot"></span> Standards are natively evaluated in LLM prompts without reading Excel standards</li>
+          </ul>
+        </div>
+
+        <div class="rule-highlight-notice">
+          <span>⚠️</span>
+          <div>
+            <strong>Audit Highlighting Criteria:</strong> Flagging rows where <code>Pred Priority Level == <span id="notice-prio-val">1</span></code> and <code>Pred Det &gt; <span id="notice-det-val">4</span></code>. Matching cells are highlighted in <strong>solid yellow with bold red font</strong>.
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" id="btn-start-audit" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            Audit Uploaded PFMEA
+          </button>
+          <button class="btn btn-secondary" id="btn-sample-audit">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            Try Sample PFMEA (pfmea_org.xlsx)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audit Rules & Token Pricing Configuration Bar -->
+    <div class="cost-config-card">
+      <div class="cost-config-title">
+        <div style="background: #eef2ff; color: var(--primary); padding: 8px; border-radius: var(--radius-sm);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </div>
+        <div>
+          <h4>Audit Highlighting Rules & Pricing Configuration</h4>
+          <span>Select which Risk Priority Level and which Detection threshold (Det &gt;) to highlight, and set token rates</span>
+        </div>
+      </div>
+
+      <div class="cost-inputs-group">
+        <!-- Control 1: Risk Priority Level to Highlight -->
+        <div class="cost-input-item" style="border-right: 1px solid var(--border-medium); padding-right: 16px;">
+          <label for="prio-level-select" style="display: flex; align-items: center; gap: 6px;">
+            <span class="rule-badge-tag rule-badge-prio">Risk Priority</span>
+            <strong>Highlight Level:</strong>
+          </label>
+          <select id="prio-level-select" class="form-select-styled">
+            <option value="1" selected>Priority 1 (High Risk)</option>
+            <option value="2">Priority 2 (Medium Risk)</option>
+            <option value="3">Priority 3 (Low Risk)</option>
+          </select>
+        </div>
+
+        <!-- Control 2: Detection Level Above Which to Highlight -->
+        <div class="cost-input-item" style="border-right: 1px solid var(--border-medium); padding-right: 16px;">
+          <label for="det-threshold-select" style="display: flex; align-items: center; gap: 6px;">
+            <span class="rule-badge-tag rule-badge-det">Detection</span>
+            <strong>Highlight if Det &gt;:</strong>
+          </label>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <select id="det-threshold-select" class="form-select-styled">
+              <option value="4" selected>&gt; 4 (Detection 5 to 10)</option>
+              <option value="3">&gt; 3 (Detection 4 to 10)</option>
+              <option value="2">&gt; 2 (Detection 3 to 10)</option>
+              <option value="5">&gt; 5 (Detection 6 to 10)</option>
+              <option value="1">&gt; 1 (Detection 2 to 10)</option>
+              <option value="custom">Custom...</option>
+            </select>
+            <input type="number" id="custom-det-input" min="1" max="10" value="4" style="display: none; width: 55px; padding: 6px 6px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; text-align: center;">
+          </div>
+        </div>
+
+        <!-- Token Pricing -->
+        <div class="cost-input-item">
+          <label for="price-input-tokens">In ($/1M):</label>
+          <input type="number" id="price-input-tokens" value="0.15" step="0.01" min="0">
+        </div>
+        <div class="cost-input-item">
+          <label for="price-output-tokens">Out ($/1M):</label>
+          <input type="number" id="price-output-tokens" value="0.60" step="0.01" min="0">
+        </div>
+        <button class="btn btn-secondary" id="btn-reset-rates" style="padding: 6px 12px; font-size: 12px;">Reset</button>
+      </div>
+    </div>
+
+    <!-- Live Progress Bar Section -->
+    <div class="progress-section" id="progress-container">
+      <div class="progress-header">
+        <span class="progress-status" id="progress-status">
+          <span>Ready to audit</span>
+        </span>
+        <span id="progress-percent" style="font-weight: 700; color: var(--accent-blue);">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-bar"></div>
+      </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="metrics-grid">
+      <div class="metric-card accent-purple">
+        <span class="metric-title">Rows Audited</span>
+        <span class="metric-value" id="metric-total-rows">0</span>
+        <span class="metric-sub" id="metric-row-progress">Waiting for audit...</span>
+      </div>
+      <div class="metric-card accent-yellow">
+        <span class="metric-title">Rule Violations (Prio <span id="metric-prio-val">1</span> &amp; Det &gt; <span id="metric-viol-thresh">4</span>)</span>
+        <span class="metric-value" id="metric-violations" style="color: #d97706;">0</span>
+        <span class="metric-sub">Highlighted Yellow + Red</span>
+      </div>
+      <div class="metric-card accent-red">
+        <span class="metric-title">Severity Discrepancies</span>
+        <span class="metric-value" id="metric-sev-mismatch" style="color: #dc2626;">0</span>
+        <span class="metric-sub">AIAG Mismatch Flagged</span>
+      </div>
+      <div class="metric-card accent-blue">
+        <span class="metric-title">Detection Discrepancies</span>
+        <span class="metric-value" id="metric-det-mismatch" style="color: #0284c7;">0</span>
+        <span class="metric-sub">Control Keyword Audited</span>
+      </div>
+      <div class="metric-card accent-green">
+        <span class="metric-title">Execution Cost</span>
+        <span class="metric-value" id="metric-cost" style="color: #059669;">$0.0000</span>
+        <span class="metric-sub" id="metric-tokens-sub">0 in / 0 out tokens</span>
+      </div>
+    </div>
+
+    <!-- Live Activity Console -->
+    <div class="console-section">
+      <div class="console-header">
+        <span>LIVE AUDITOR STREAMING CONSOLE</span>
+        <span id="token-usage" style="color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">Total Tokens: 0</span>
+      </div>
+      <div class="console-body" id="console-output">
+        <div class="console-line">
+          <span class="console-time">[00:00:00]</span>
+          <span class="console-msg">System initialized. Upload an Excel file or click 'Try Sample PFMEA' to start live streaming.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Streamed Audited PFMEA Table Card -->
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="toolbar-left">
+          <h3>Audited PFMEA Output (Sheet: PFMEA_Audited)</h3>
+          <input type="text" class="search-input" id="table-search" placeholder="Search failure modes, causes...">
+          <select class="filter-select" id="filter-select">
+            <option value="all">Show All Rows</option>
+            <option value="violations">Violations Only (Yellow/Red)</option>
+            <option value="mismatches">Any LLM Corrections</option>
+          </select>
+          <button type="button" class="btn btn-secondary" id="btn-reset-cols" title="Reset all column widths to default" style="padding: 7px 11px; font-size: 12px; gap: 5px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+            Auto-fit Columns
+          </button>
+          <span style="font-size: 11px; color: #64748b; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+            Drag header borders to resize columns
+          </span>
+        </div>
+        <div class="btn-group">
+          <a class="btn btn-secondary" id="btn-download-excel" href="/api/download/excel" download>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download Audited Excel
+          </a>
+          <a class="btn btn-secondary" id="btn-download-html" href="/api/download/html" target="_blank">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            Open Interactive HTML
+          </a>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table" id="audited-table">
+          <thead>
+            <tr>
+              <th>Row</th>
+              <th>Process</th>
+              <th>Potential Failure Mode</th>
+              <th>Potential Effects</th>
+              <th>Sev</th>
+              <th>Pred Sev</th>
+              <th>Sev Reasoning</th>
+              <th>Occ</th>
+              <th>Current Detection Controls</th>
+              <th>Det</th>
+              <th>Pred Det</th>
+              <th>Det Reasoning</th>
+              <th>RPN</th>
+              <th>New RPN</th>
+              <th>D-P Gap</th>
+              <th>Priority Level</th>
+              <th>Pred Priority Level</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr>
+              <td colspan="17" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                No audit data streamed yet. Upload an Excel file or click 'Try Sample PFMEA' to start the live agent stream.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AIAG Reference Information (Bottom Section) -->
+    <div class="standards-section" id="standards-section">
+      <div class="standards-header">
+        <h3>AIAG Reference Standards & Matrices</h3>
+        <p>Complete AIAG FMEA Standards including Severity Zone, Detection Zone, Priority Level matrices, and audit criteria.</p>
+      </div>
+
+      <div class="standards-tabs">
+        <button class="tab-btn active" data-tab="tab-prio">Priority & Audit Matrix</button>
+        <button class="tab-btn" data-tab="tab-sev-zone">Severity Zone Matrix (SZ)</button>
+        <button class="tab-btn" data-tab="tab-det-zone">Detection Zone Matrix (DZ)</button>
+        <button class="tab-btn" data-tab="tab-sev">AIAG Severity Standards (1-10)</button>
+        <button class="tab-btn" data-tab="tab-occ">AIAG Occurrence Standards (1-10)</button>
+        <button class="tab-btn" data-tab="tab-det">AIAG Detection Standards (1-10)</button>
+      </div>
+
+      <!-- Tab: Priority & Audit Matrix -->
+      <div class="tab-content active" id="tab-prio">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <div class="instructions-box" style="background: #ffffff; border: 1px solid var(--border-subtle); padding: 20px;">
+            <h4 style="color: var(--primary); font-size: 15px; margin-bottom: 12px;">Priority Level Matrix (AIAG Standard)</h4>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+              Priority Level (1, 2, or 3) is evaluated dynamically by cross-referencing <strong>Detection Zone (DZ)</strong> against <strong>Severity Zone (SZ)</strong>:
+            </p>
+            <table class="ref-table" style="font-size: 12px;">
+              <thead>
+                <tr>
+                  <th>Detection Zone \ Severity Zone</th>
+                  <th style="text-align: center;">SZ 1 (High Risk)</th>
+                  <th style="text-align: center;">SZ 2 (Moderate)</th>
+                  <th style="text-align: center;">SZ 3 (Low Risk)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>DZ 1 (High Det / Weak Controls)</strong></td>
+                  <td style="text-align: center;"><span class="rank-badge rank-high">1</span> High</td>
+                  <td style="text-align: center;"><span class="rank-badge rank-high">1</span> High</td>
+                  <td style="text-align: center;"><span class="rank-badge rank-med">2</span> Med</td>
+                </tr>
+                <tr>
+                  <td><strong>DZ 2 (Moderate Detection)</strong></td>
+                  <td style="text-align: center;"><span class="rank-badge rank-high">1</span> High</td>
+                  <td style="text-align: center;"><span class="rank-badge rank-med">2</span> Med</td>
+                  <td style="text-align: center;"><span class="rank-badge rank-low">3</span> Low</td>
+                </tr>
+                <tr>
+                  <td><strong>DZ 3 (Low Det / Robust Poka-Yoke)</strong></td>
+                  <td style="text-align: center;"><span class="rank-badge rank-med">2</span> Med</td>
+                  <td style="text-align: center;"><span class="rank-badge rank-med">2</span> Med</td>
+                  <td style="text-align: center;"><span class="rank-badge rank-low">3</span> Low</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="instructions-box" style="background: #ffffff; border: 1px solid var(--border-subtle); padding: 20px;">
+            <h4 style="color: #b45309; font-size: 15px; margin-bottom: 12px;">Auditor Highlighting & Quality Rules</h4>
+            <ul style="margin-top: 10px; gap: 14px;">
+              <li>
+                <span class="dot" style="background: #d97706;"></span>
+                <span><strong>Priority 1 Control Mandate:</strong> Any process failure mode with <code>Pred Priority Level == 1</code> must have robust controls where <code>Pred Det &le; 4</code> (Automated poka-yoke, automatic locking, or error proofing).</span>
+              </li>
+              <li>
+                <span class="dot" style="background: #dc2626;"></span>
+                <span><strong>Violation Highlighting:</strong> If a row has <code>Pred Priority Level == 1</code> but <code>Pred Det &gt; 4</code> (or invalid/missing), the cell is highlighted in <span style="background: #FFFF00; color: #DC2626; font-weight: 800; padding: 2px 8px; border: 1px solid #dc2626; border-radius: 4px;">Solid Yellow with Bold Red Text</span>.</span>
+              </li>
+              <li>
+                <span class="dot" style="background: #0284c7;"></span>
+                <span><strong>Design-to-Process (D-P) Gap Rule:</strong> When Severity is 9 or 10, Detection must be &lt; 3; otherwise a critical gap flag is raised.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Severity Zone Matrix (SZ) -->
+      <div class="tab-content" id="tab-sev-zone">
+        <div style="margin-bottom: 14px;">
+          <h4 style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Severity Zone (SZ) Lookup Matrix: Occurrence vs. Severity</h4>
+          <p style="font-size: 13px; color: var(--text-secondary);">
+            Determines Severity Zone (1 = High Risk, 2 = Moderate Risk, 3 = Low Risk) based on Stated/Predicted Severity (Cols 1-10) and Occurrence (Rows 1-10).
+          </p>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="matrix-grid-table">
+            <thead>
+              <tr>
+                <th style="width: 120px;">Occurrence \ Severity</th>
+                <th>Sev 1</th>
+                <th>Sev 2</th>
+                <th>Sev 3</th>
+                <th>Sev 4</th>
+                <th>Sev 5</th>
+                <th>Sev 6</th>
+                <th>Sev 7</th>
+                <th>Sev 8</th>
+                <th>Sev 9</th>
+                <th>Sev 10</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Occ 10</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Occ 9</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Occ 8</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Occ 7</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Occ 6</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Occ 5</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Occ 4</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Occ 3</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Occ 2</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Occ 1</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Detection Zone Matrix (DZ) -->
+      <div class="tab-content" id="tab-det-zone">
+        <div style="margin-bottom: 14px;">
+          <h4 style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Detection Zone (DZ) Lookup Matrix: Detection vs. Severity</h4>
+          <p style="font-size: 13px; color: var(--text-secondary);">
+            Determines Detection Zone (1 = High Risk / Poor Detection, 2 = Moderate Detection, 3 = Low Risk / Robust Detection) based on Severity (Cols 1-10) and Detection (Rows 1-10).
+          </p>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="matrix-grid-table">
+            <thead>
+              <tr>
+                <th style="width: 120px;">Detection \ Severity</th>
+                <th>Sev 1</th>
+                <th>Sev 2</th>
+                <th>Sev 3</th>
+                <th>Sev 4</th>
+                <th>Sev 5</th>
+                <th>Sev 6</th>
+                <th>Sev 7</th>
+                <th>Sev 8</th>
+                <th>Sev 9</th>
+                <th>Sev 10</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Det 10</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Det 9</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Det 8</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Det 7</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Det 6</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td><td class="zone-badge-1">1</td></tr>
+              <tr><td><strong>Det 5</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td></tr>
+              <tr><td><strong>Det 4</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td><td class="zone-badge-2">2</td></tr>
+              <tr><td><strong>Det 3</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td></tr>
+              <tr><td><strong>Det 2</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td></tr>
+              <tr><td><strong>Det 1</strong></td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td><td class="zone-badge-3">3</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Severity Standards -->
+      <div class="tab-content" id="tab-sev">
+        <table class="ref-table">
+          <thead>
+            <tr>
+              <th style="width: 70px;">Rank</th>
+              <th>Effect Category</th>
+              <th>Severity of Effect on Product (Customer)</th>
+              <th>Severity of Effect on Process (Manufacturing / Assembly)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="rank-badge rank-high">10</span></td>
+              <td><strong>Hazardous w/o Warning</strong></td>
+              <td>Affects safe operation and/or involves noncompliance with regulations without warning.</td>
+              <td>May endanger operator, machine or assembly without warning.</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-high">9</span></td>
+              <td><strong>Hazardous with Warning</strong></td>
+              <td>Affects safe operation and/or involves noncompliance with regulations with warning.</td>
+              <td>May endanger operator, machine or assembly with warning.</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-high">8</span></td>
+              <td><strong>Loss of Primary Function</strong></td>
+              <td>Product inoperable, does not affect safe operation.</td>
+              <td>Major disruption: 100% of product may have to be scrapped. Line shutdown or stop ship.</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-high">7</span></td>
+              <td><strong>Degradation Primary Function</strong></td>
+              <td>Product operable, but at a reduced level of performance.</td>
+              <td>Significant disruption: Portion of production scrapped. Reduced line speed or added manpower.</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-med">6</span></td>
+              <td><strong>Loss Secondary Function</strong></td>
+              <td>Product operable, service life greatly reduced, convenience items inoperable.</td>
+              <td>Moderate disruption: 100% of production run may have to be reworked off line and accepted.</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-med">5</span></td>
+              <td><strong>Degradation Secondary Function</strong></td>
+              <td>Appearance affected, convenience items operable at reduced level.</td>
+              <td>Moderate disruption: A proportion of production run reworked off line and accepted.</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-med">4</span></td>
+              <td><strong>Annoyance (&gt;75% users)</strong></td>
+              <td>Fit and finish do not conform, noticed by majority of customers (&gt;75%).</td>
+              <td>Moderate disruption: 100% of run reworked in station before processing.</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">3</span></td>
+              <td><strong>Annoyance (~50% users)</strong></td>
+              <td>Fit and finish defect noticed by about half of customers (50%).</td>
+              <td>Portion of production run reworked in station before processing.</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">2</span></td>
+              <td><strong>Minor Annoyance (&lt;25%)</strong></td>
+              <td>Defect noticed by discriminating customers (&lt;25%).</td>
+              <td>Minor disruption: Slight inconvenience to process, operation or operator.</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">1</span></td>
+              <td><strong>No Effect</strong></td>
+              <td>No discernible effect.</td>
+              <td>No discernible effect.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab: Occurrence Standards -->
+      <div class="tab-content" id="tab-occ">
+        <table class="ref-table">
+          <thead>
+            <tr>
+              <th style="width: 70px;">Rank</th>
+              <th>Likelihood of Failure</th>
+              <th>Defect PPM</th>
+              <th>Failure Frequency & Time-Based Example</th>
+              <th>Incident Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="rank-badge rank-high">10</span></td>
+              <td><strong>Very High</strong></td>
+              <td>500,000 PPM</td>
+              <td>&gt; 1 per occurrence per shift (100% of production)</td>
+              <td>&ge; 1 in 10 (&gt;100 per thousand)</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-high">9</span></td>
+              <td><strong>High</strong></td>
+              <td>50,000 PPM</td>
+              <td>&gt; 1 per occurrence per day (50% of production)</td>
+              <td>1 in 20 (50 per thousand)</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-high">8</span></td>
+              <td><strong>High</strong></td>
+              <td>20,000 PPM</td>
+              <td>&gt; 1 per 2-3 days (20% of production)</td>
+              <td>1 in 50 (20 per thousand)</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-med">7</span></td>
+              <td><strong>Moderate</strong></td>
+              <td>10,000 PPM</td>
+              <td>&gt; 1 per week (10% of production)</td>
+              <td>1 in 100 (10 per thousand)</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-med">6</span></td>
+              <td><strong>Moderate</strong></td>
+              <td>5,000 PPM</td>
+              <td>&gt; 1 per 2 weeks / 1 per month (5% of production)</td>
+              <td>1 in 500 (2 per thousand)</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-med">5</span></td>
+              <td><strong>Moderate</strong></td>
+              <td>1,000 PPM</td>
+              <td>&gt; 1 per quarter / 2 per year (0.5% of production)</td>
+              <td>1 in 2,000 (0.5 per thousand)</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">4</span></td>
+              <td><strong>Moderately Low</strong></td>
+              <td>100 PPM</td>
+              <td>&gt; 1 per half year / 1 per year (0.1% of production)</td>
+              <td>1 in 10,000 (0.1 per thousand)</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">3</span></td>
+              <td><strong>Low</strong></td>
+              <td>10 PPM</td>
+              <td>&gt; 1 per year / 1 per 5 years (0.05% of production)</td>
+              <td>1 in 100,000 (0.01 per thousand)</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">2</span></td>
+              <td><strong>Low</strong></td>
+              <td>1 PPM</td>
+              <td>&lt; 1 per year / 1 per 10 years (0.01% of production)</td>
+              <td>1 in 1,000,000 (&lt;0.001 per thousand)</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">1</span></td>
+              <td><strong>Very Low</strong></td>
+              <td>0 PPM</td>
+              <td>Almost never. Eliminated through preventive controls.</td>
+              <td>Zero defect design</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab: Detection Standards -->
+      <div class="tab-content" id="tab-det">
+        <table class="ref-table">
+          <thead>
+            <tr>
+              <th style="width: 70px;">Rank</th>
+              <th>Category</th>
+              <th>Likelihood of Detection by Process Control Criteria</th>
+              <th>Control Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="rank-badge rank-high">10</span></td>
+              <td><strong>Absolute Uncertainty</strong></td>
+              <td>No current process control; cannot detect or compliance analysis not performed.</td>
+              <td>100% Human Inspection / Uncontrolled</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-high">9</span></td>
+              <td><strong>Difficult to Detect</strong></td>
+              <td>Defect (Failure Mode) or Error (Cause) is not easily detected (e.g. Random audits).</td>
+              <td>Random audit / Visual check</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-high">8</span></td>
+              <td><strong>Post-Processing Defect Detection</strong></td>
+              <td>Defect detection post-processing by operator through visual/tactile/audible means with no boundary samples.</td>
+              <td>Subjective visual inspection</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-med">7</span></td>
+              <td><strong>Source Defect Detection</strong></td>
+              <td>In-station by operator through visual/tactile/audible means or attribute gauging (go/no-go, clicker wrench) with no boundary samples.</td>
+              <td>Manual gauging on every part</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-med">6</span></td>
+              <td><strong>Post-Processing Defect Detection</strong></td>
+              <td>Post-processing by operator through variable gauging or in-station with boundary samples.</td>
+              <td>Variable gauging / Boundary samples</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-med">5</span></td>
+              <td><strong>Source Defect Detection</strong></td>
+              <td>In-station by automated controls notifying operator (light, buzzer); gauging on setup & 1st piece.</td>
+              <td>Automated alert / 1st piece setup</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">4</span></td>
+              <td><strong>Post-Processing Automated Lock</strong></td>
+              <td>Automated controls that detect discrepant part and lock part to prevent further processing.</td>
+              <td>Automated lock post-process</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">3</span></td>
+              <td><strong>Source Automated Lock</strong></td>
+              <td>In-station automated controls that detect discrepant part and automatically lock part in station.</td>
+              <td>Automated in-station lock</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">2</span></td>
+              <td><strong>Error Detection / Defect Prevention</strong></td>
+              <td>Error (Cause) detection in-station by automated controls that prevent discrepant part from being made.</td>
+              <td>Error detection / automated prevention</td>
+            </tr>
+            <tr>
+              <td><span class="rank-badge rank-low">1</span></td>
+              <td><strong>Poka-Yoke Prevention</strong></td>
+              <td>Error (Cause) prevention as a result of fixture design, machine design or part design.</td>
+              <td>Mistake proofed (Poka-Yoke)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- System Assumptions & Auditor Verification Scope Section -->
+    <div class="assumptions-section" id="assumptions-section">
+      <div class="assumptions-header">
+        <div class="assumptions-title-group">
+          <div class="assumptions-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div>
+            <h3>System Assumptions &amp; Auditor Verification Scope</h3>
+            <p>Critical operating assumptions, hierarchical PFMEA mappings (Manufacturing Step &rarr; Failure Mode &rarr; Effects / Causes / Controls), and AI verification boundaries.</p>
+          </div>
+        </div>
+        <span class="badge" style="background: #fef3c7; color: #92400e; border-color: #fde68a;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          Auditor Guidance
+        </span>
+      </div>
+
+      <div class="assumptions-grid">
+        <!-- Assumption 1 -->
+        <div class="assumption-card alert-amber">
+          <div class="assumption-card-header">
+            <span class="assumption-num">1</span>
+            <h4>AI Verification Notice &amp; Human Oversight</h4>
+          </div>
+          <p class="assumption-text">
+            <strong>AI can make mistakes. Always cross-verify the output of this AI tool before making quality, safety, or manufacturing decisions.</strong>
+          </p>
+          <div class="assumption-note">
+            AI recommendations serve strictly as assistive decision support. Final engineering approval, risk prioritization, and corrective action sign-offs remain the direct responsibility of the qualified PFMEA auditor and process engineering team.
+          </div>
+        </div>
+
+        <!-- Assumption 2 -->
+        <div class="assumption-card alert-blue">
+          <div class="assumption-card-header">
+            <span class="assumption-num">2</span>
+            <h4>Severity Score Hierarchical Mapping</h4>
+          </div>
+          <div class="mapping-breadcrumb" style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 11px; font-weight: 700; color: #1d4ed8; margin: 4px 0;">
+            <span style="background: #dbeafe; padding: 2px 6px; border-radius: 4px;">Manufacturing Step</span>
+            <span>&rarr;</span>
+            <span style="background: #dbeafe; padding: 2px 6px; border-radius: 4px;">Failure Mode</span>
+            <span>&rarr;</span>
+            <span style="background: #dbeafe; padding: 2px 6px; border-radius: 4px;">Effect of Failure</span>
+            <span>&rarr;</span>
+            <span style="background: #bfdbfe; color: #1e40af; padding: 2px 6px; border-radius: 4px;">Severity Score</span>
+          </div>
+          <p class="assumption-text">
+            <strong>Severity scores need to be mapped to the Potential Effect of Failure, which maps to the Potential Failure Mode, and back to the specific Manufacturing Step.</strong>
+          </p>
+          <div class="assumption-note">
+            It is assumed that the potential failure mode and its resulting effects of failure for a given manufacturing process step are correct, accurate, and pre-verified by the auditor. Severity directly evaluates the seriousness of the effect on customer safety and plant operations.
+          </div>
+        </div>
+
+        <!-- Assumption 3 -->
+        <div class="assumption-card alert-purple">
+          <div class="assumption-card-header">
+            <span class="assumption-num">3</span>
+            <h4>Occurrence &amp; Detection Hierarchical Mapping</h4>
+          </div>
+          <div class="mapping-breadcrumb" style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 11px; font-weight: 700; color: #6b21a8; margin: 4px 0;">
+            <span style="background: #f3e8ff; padding: 2px 6px; border-radius: 4px;">Manufacturing Step</span>
+            <span>&rarr;</span>
+            <span style="background: #f3e8ff; padding: 2px 6px; border-radius: 4px;">Failure Mode</span>
+            <span>&rarr;</span>
+            <span style="background: #f3e8ff; padding: 2px 6px; border-radius: 4px;">Causes &amp; Controls</span>
+            <span>&rarr;</span>
+            <span style="background: #e9d5ff; color: #581c87; padding: 2px 6px; border-radius: 4px;">Occ &amp; Det Scores</span>
+          </div>
+          <p class="assumption-text">
+            <strong>Similarly, Occurrence and Detection scores must be mapped through the Manufacturing Step &rarr; Failure Mode &rarr; Potential Cause &amp; Process Controls: Occurrence mapped to the frequency/likelihood of the cause, and Detection mapped to the control capability to detect the cause or failure mode at that step.</strong>
+          </p>
+          <div class="assumption-note">
+            The numerical Occurrence (Occ) scores (based on process capability / statistical history) and baseline Detection (Det) scores entered in the workbook are assumed to have been verified and validated by the engineering auditor prior to audit.
+          </div>
+        </div>
+
+        <!-- Assumption 4 -->
+        <div class="assumption-card alert-teal">
+          <div class="assumption-card-header">
+            <span class="assumption-num">4</span>
+            <h4>AI Tool Scope of Verification</h4>
+          </div>
+          <div class="mapping-breadcrumb" style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 11px; font-weight: 700; color: #0f766e; margin: 4px 0;">
+            <span style="background: #ccfbf1; padding: 2px 6px; border-radius: 4px;">Effect &amp; Control Text</span>
+            <span>&harr;</span>
+            <span style="background: #99f6e4; color: #115e59; padding: 2px 6px; border-radius: 4px;">AIAG Standards Criteria</span>
+            <span>&rarr;</span>
+            <span style="background: #ccfbf1; padding: 2px 6px; border-radius: 4px;">Audited Ratings &amp; Gaps</span>
+          </div>
+          <p class="assumption-text">
+            <strong>The AI tool only facilitates verifying the Severity effect text and Detection control text against AIAG standards.</strong>
+          </p>
+          <div class="assumption-note">
+            The automated auditor cross-examines textual descriptions against official AIAG 4th Edition criteria to identify over/under-ratings, verify D-P gap compliance (when Severity is 9&ndash;10), and flag risk priority violations, relying on the structural mappings above being established by the engineering team.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>AI based Intelligent PFMEA Auditor &bull; Engineering Quality System &bull; AIAG 4th Edition Compliant</p>
+    </footer>
+
+  </div>
+
+  <script>
+    // State
+    let selectedFile = null;
+    let auditedRows = [];
+    let currentInputTokens = 0;
+    let currentOutputTokens = 0;
+    let currentTargetPriority = 1;
+    let currentDetThreshold = 4;
+
+    // Elements
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const fileBadge = document.getElementById('file-badge');
+    const selectedFileName = document.getElementById('selected-file-name');
+    const btnStartAudit = document.getElementById('btn-start-audit');
+    const btnSampleAudit = document.getElementById('btn-sample-audit');
+    
+    const progressBar = document.getElementById('progress-bar');
+    const progressPercent = document.getElementById('progress-percent');
+    const progressStatus = document.getElementById('progress-status');
+    
+    const metricTotalRows = document.getElementById('metric-total-rows');
+    const metricRowProgress = document.getElementById('metric-row-progress');
+    const metricViolations = document.getElementById('metric-violations');
+    const metricSevMismatch = document.getElementById('metric-sev-mismatch');
+    const metricDetMismatch = document.getElementById('metric-det-mismatch');
+    const metricCost = document.getElementById('metric-cost');
+    const metricTokensSub = document.getElementById('metric-tokens-sub');
+    const tokenUsage = document.getElementById('token-usage');
+    
+    const priceInputTokens = document.getElementById('price-input-tokens');
+    const priceOutputTokens = document.getElementById('price-output-tokens');
+    const btnResetRates = document.getElementById('btn-reset-rates');
+    
+    const prioLevelSelect = document.getElementById('prio-level-select');
+    const detThresholdSelect = document.getElementById('det-threshold-select');
+    const customDetInput = document.getElementById('custom-det-input');
+    const noticePrioVal = document.getElementById('notice-prio-val');
+    const noticeDetVal = document.getElementById('notice-det-val');
+    const metricPrioVal = document.getElementById('metric-prio-val');
+    const metricViolThresh = document.getElementById('metric-viol-thresh');
+
+    const consoleOutput = document.getElementById('console-output');
+    const tableBody = document.getElementById('table-body');
+    const tableSearch = document.getElementById('table-search');
+    const filterSelect = document.getElementById('filter-select');
+
+    // Audit Highlighting Rule Handler
+    function updateHighlightRule(prio, det) {
+      currentTargetPriority = parseInt(prio) || 1;
+      currentDetThreshold = parseFloat(det) || 4;
+
+      if (prioLevelSelect) prioLevelSelect.value = String(currentTargetPriority);
+
+      const standardDetValues = ['1', '2', '3', '4', '5'];
+      if (detThresholdSelect) {
+        if (standardDetValues.includes(String(currentDetThreshold))) {
+          detThresholdSelect.value = String(currentDetThreshold);
+          if (customDetInput) customDetInput.style.display = 'none';
+        } else {
+          detThresholdSelect.value = 'custom';
+          if (customDetInput) {
+            customDetInput.style.display = 'inline-block';
+            customDetInput.value = currentDetThreshold;
+          }
+        }
+      }
+
+      if (noticePrioVal) noticePrioVal.textContent = currentTargetPriority;
+      if (noticeDetVal) noticeDetVal.textContent = currentDetThreshold;
+      if (metricPrioVal) metricPrioVal.textContent = currentTargetPriority;
+      if (metricViolThresh) metricViolThresh.textContent = currentDetThreshold;
+
+      logMessage(`Highlighting rule updated: Highlight rows where Priority == ${currentTargetPriority} and Det > ${currentDetThreshold}`, 'highlight');
+      recalculateViolations();
+    }
+
+    if (prioLevelSelect) {
+      prioLevelSelect.addEventListener('change', (e) => {
+        updateHighlightRule(e.target.value, currentDetThreshold);
+      });
+    }
+
+    if (detThresholdSelect) {
+      detThresholdSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'custom') {
+          if (customDetInput) customDetInput.style.display = 'inline-block';
+          const val = customDetInput ? customDetInput.value : 4;
+          updateHighlightRule(currentTargetPriority, val);
+        } else {
+          if (customDetInput) customDetInput.style.display = 'none';
+          updateHighlightRule(currentTargetPriority, e.target.value);
+        }
+      });
+    }
+
+    if (customDetInput) {
+      customDetInput.addEventListener('input', (e) => {
+        updateHighlightRule(currentTargetPriority, e.target.value);
+      });
+    }
+
+    // Drag and drop events
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        handleFileSelection(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFileSelection(e.target.files[0]);
+      }
+    });
+
+    function handleFileSelection(file) {
+      if (!file.name.match(/\.(xlsx|xlsm|xltx)$/i)) {
+        alert('Please upload a valid Excel file (.xlsx)');
+        return;
+      }
+      selectedFile = file;
+      selectedFileName.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      fileBadge.style.display = 'inline-flex';
+      btnStartAudit.disabled = false;
+      logMessage(`Selected file: ${file.name}. Ready to audit.`, 'highlight');
+    }
+
+    // Cost Calculation Helper
+    function updateCostDisplay() {
+      const inRate = parseFloat(priceInputTokens.value) || 0.15;
+      const outRate = parseFloat(priceOutputTokens.value) || 0.60;
+      
+      const inCost = (currentInputTokens / 1000000) * inRate;
+      const outCost = (currentOutputTokens / 1000000) * outRate;
+      const totalCost = inCost + outCost;
+
+      metricCost.textContent = `$${totalCost.toFixed(4)}`;
+      metricTokensSub.textContent = `${currentInputTokens.toLocaleString()} in / ${currentOutputTokens.toLocaleString()} out tokens`;
+      tokenUsage.textContent = `Tokens: ${currentInputTokens.toLocaleString()} in / ${currentOutputTokens.toLocaleString()} out | Est. Cost: $${totalCost.toFixed(4)}`;
+    }
+
+    priceInputTokens.addEventListener('input', updateCostDisplay);
+    priceOutputTokens.addEventListener('input', updateCostDisplay);
+    btnResetRates.addEventListener('click', () => {
+      priceInputTokens.value = '0.15';
+      priceOutputTokens.value = '0.60';
+      updateCostDisplay();
+    });
+
+    // Tabs functionality
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
+      });
+    });
+
+    // Logging helper
+    function logMessage(text, type = 'normal') {
+      const line = document.createElement('div');
+      line.className = 'console-line';
+      const now = new Date().toTimeString().split(' ')[0];
+      line.innerHTML = `<span class="console-time">[${now}]</span><span class="console-msg ${type}">${escapeHtml(text)}</span>`;
+      consoleOutput.appendChild(line);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Start Audit Click Handlers
+    btnStartAudit.addEventListener('click', () => {
+      if (!selectedFile) return;
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('target_priority', currentTargetPriority);
+      formData.append('det_threshold', currentDetThreshold);
+      startStreamAudit('/api/audit-upload', {
+        method: 'POST',
+        body: formData
+      });
+    });
+
+    btnSampleAudit.addEventListener('click', () => {
+      startStreamAudit(`/api/audit-sample?target_priority=${currentTargetPriority}&det_threshold=${currentDetThreshold}`, { method: 'GET' });
+    });
+
+    // Core SSE Streaming Handler
+    async function startStreamAudit(url, fetchOptions) {
+      auditedRows = [];
+      tableBody.innerHTML = '';
+      currentInputTokens = 0;
+      currentOutputTokens = 0;
+      updateCostDisplay();
+
+      btnStartAudit.disabled = true;
+      btnSampleAudit.disabled = true;
+      
+      progressFill(0);
+      progressStatus.innerHTML = '<span class="status-dot" style="background: #0284c7;"></span> Auditing in progress...';
+      logMessage('Connecting to AI Auditor streaming endpoint...', 'highlight');
+
+      try {
+        const response = await fetch(url, fetchOptions);
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop(); // Keep incomplete chunk
+
+          for (const part of parts) {
+            const line = part.trim();
+            if (line.startsWith('data:')) {
+              const jsonStr = line.substring(5).trim();
+              try {
+                const event = JSON.parse(jsonStr);
+                handleStreamEvent(event);
+              } catch (err) {
+                console.error('Error parsing SSE event JSON:', err, jsonStr);
+              }
+            }
+          }
+        }
+
+        logMessage('Audit stream closed by server.', 'success');
+      } catch (err) {
+        logMessage(`Audit stream error: ${err.message}`, 'alert');
+        progressStatus.innerHTML = `<span style="color: #dc2626;">Error: ${escapeHtml(err.message)}</span>`;
+      } finally {
+        btnStartAudit.disabled = selectedFile ? false : true;
+        btnSampleAudit.disabled = false;
+      }
+    }
+
+    function handleStreamEvent(event) {
+      if (event.type === 'log') {
+        logMessage(event.message);
+      } else if (event.type === 'init') {
+        metricTotalRows.textContent = event.total_rows;
+        metricRowProgress.textContent = `0 of ${event.total_rows} evaluated`;
+        logMessage(`Initialized audit for ${event.total_rows} PFMEA rows.`);
+      } else if (event.type === 'row') {
+        auditedRows.push(event);
+        renderRow(event);
+        progressFill(event.progress_pct);
+        progressStatus.innerHTML = `<span class="status-dot"></span> Evaluated row ${event.row_index} of ${event.total_rows} (${event.progress_pct}%)`;
+        metricRowProgress.textContent = `${event.row_index} of ${event.total_rows} rows completed`;
+        
+        // Update stats and cost
+        if (event.stats) {
+          metricViolations.textContent = event.stats.violations_count;
+          metricSevMismatch.textContent = event.stats.sev_discrepancies;
+          metricDetMismatch.textContent = event.stats.det_discrepancies;
+          currentInputTokens = event.stats.input_tokens;
+          currentOutputTokens = event.stats.output_tokens;
+          updateCostDisplay();
+        }
+      } else if (event.type === 'complete') {
+        progressFill(100);
+        progressStatus.innerHTML = '✅ <strong style="color: #059669;">Audit Complete! Ready for Download</strong>';
+        logMessage(event.message, 'success');
+        if (event.summary) {
+          metricViolations.textContent = event.summary.violations_count;
+          metricSevMismatch.textContent = event.summary.sev_discrepancies;
+          metricDetMismatch.textContent = event.summary.det_discrepancies;
+          currentInputTokens = event.summary.input_tokens;
+          currentOutputTokens = event.summary.output_tokens;
+          updateCostDisplay();
+          logMessage(`Summary: ${event.summary.total_rows} rows processed. ${event.summary.violations_count} Priority ${currentTargetPriority} violations flagged (Det > ${currentDetThreshold}). Total cost: ${metricCost.textContent}.`, 'highlight');
+        }
+      } else if (event.type === 'error') {
+        logMessage(event.message, 'alert');
+        progressStatus.innerHTML = `<span style="color: #dc2626;">${escapeHtml(event.message)}</span>`;
+      }
+    }
+
+    function progressFill(pct) {
+      progressBar.style.width = `${pct}%`;
+      progressPercent.textContent = `${pct}%`;
+    }
+
+    // Render a row into the HTML table
+    function renderRow(item) {
+      const data = item.data;
+      const flags = item.flags;
+      const tr = document.createElement('tr');
+      tr.dataset.rowIndex = item.row_index;
+
+      // Evaluate violation against currentTargetPriority and currentDetThreshold dynamically
+      const prioVal = data['Pred Priority Level'] !== undefined ? data['Pred Priority Level'] : '';
+      const predDetVal = (data['Pred Det'] !== undefined && data['Pred Det'] !== null && String(data['Pred Det']).trim() !== '') ? Number(data['Pred Det']) : null;
+      const isDetViolation = (predDetVal === null || isNaN(predDetVal) || predDetVal > currentDetThreshold);
+      const isViolation = (Number(prioVal) === Number(currentTargetPriority) && isDetViolation);
+
+      tr.dataset.isViolation = isViolation ? 'true' : 'false';
+      tr.dataset.hasMismatch = (flags.has_sev_mismatch || flags.has_det_mismatch) ? 'true' : 'false';
+
+      let prioTdClass = '';
+      let prioContent = escapeHtml(prioVal);
+
+      if (isViolation) {
+        prioTdClass = 'violation-highlight';
+        prioContent = `${escapeHtml(prioVal)} <span class="violation-badge">VIOLATION: PRIO ${currentTargetPriority} &amp; DET &gt; ${currentDetThreshold}</span>`;
+      }
+
+      const sevMismatchClass = flags.has_sev_mismatch ? 'mismatch-text' : '';
+      const detMismatchClass = flags.has_det_mismatch ? 'mismatch-text' : '';
+
+      tr.innerHTML = `
+        <td style="font-weight: 700; color: #64748b;">${item.row_index}</td>
+        <td><strong>${escapeHtml(data['Process'])}</strong></td>
+        <td>${escapeHtml(data['Potential Failure Mode'])}</td>
+        <td style="font-size: 12px;">${escapeHtml(data['Potential Effects of Failure'])}</td>
+        <td style="text-align: center;">${escapeHtml(data['Sev'])}</td>
+        <td style="text-align: center;"><span class="${sevMismatchClass}">${escapeHtml(data['Pred Sev'])}</span></td>
+        <td style="font-size: 12px; color: ${flags.has_sev_mismatch ? '#dc2626' : '#64748b'};">${escapeHtml(data['Sev Reasoning'])}</td>
+        <td style="text-align: center;">${escapeHtml(data['Occ'])}</td>
+        <td style="font-size: 12px;">${escapeHtml(data['Current Process Detection Controls'])}</td>
+        <td style="text-align: center;">${escapeHtml(data['Det'])}</td>
+        <td style="text-align: center;"><span class="${detMismatchClass}">${escapeHtml(data['Pred Det'])}</span></td>
+        <td style="font-size: 12px; color: ${flags.has_det_mismatch ? '#dc2626' : '#64748b'};">${escapeHtml(data['Det Reasoning'])}</td>
+        <td style="text-align: center;">${escapeHtml(data['RPN'])}</td>
+        <td style="text-align: center; font-weight: 700;">${escapeHtml(data['New RPN'])}</td>
+        <td style="text-align: center;"><span class="${flags.dp_gap_flag ? 'mismatch-text' : ''}">${escapeHtml(data['D-P gap'])}</span></td>
+        <td style="text-align: center;">${escapeHtml(data['Priority Level'])}</td>
+        <td class="${prioTdClass}">${prioContent}</td>
+      `;
+
+      if (item.row_index === 1) {
+        tableBody.innerHTML = '';
+      }
+      tableBody.appendChild(tr);
+    }
+
+    // Dynamic Recalculation of Violations when Priority or Detection Threshold is Changed
+    function recalculateViolations() {
+      let vCount = 0;
+      const trs = tableBody.querySelectorAll('tr[data-row-index]');
+      trs.forEach((tr, idx) => {
+        const item = auditedRows[idx];
+        if (!item) return;
+        const data = item.data;
+        const prioVal = data['Pred Priority Level'] !== undefined ? data['Pred Priority Level'] : '';
+        const predDetVal = (data['Pred Det'] !== undefined && data['Pred Det'] !== null && String(data['Pred Det']).trim() !== '') ? Number(data['Pred Det']) : null;
+        const isDetViolation = (predDetVal === null || isNaN(predDetVal) || predDetVal > currentDetThreshold);
+        const isViolation = (Number(prioVal) === Number(currentTargetPriority) && isDetViolation);
+
+        tr.dataset.isViolation = isViolation ? 'true' : 'false';
+        const prioCell = tr.cells[16];
+        if (prioCell) {
+          if (isViolation) {
+            prioCell.className = 'violation-highlight';
+            prioCell.innerHTML = `${escapeHtml(prioVal)} <span class="violation-badge">VIOLATION: PRIO ${currentTargetPriority} &amp; DET &gt; ${currentDetThreshold}</span>`;
+            vCount++;
+          } else {
+            prioCell.className = '';
+            prioCell.textContent = prioVal;
+          }
+        }
+      });
+      if (auditedRows.length > 0) {
+        metricViolations.textContent = vCount;
+      }
+      applyFilters();
+    }
+
+    // Filter and search
+    function applyFilters() {
+      const query = tableSearch.value.toLowerCase().trim();
+      const filterMode = filterSelect.value;
+      const rows = tableBody.querySelectorAll('tr');
+
+      rows.forEach(tr => {
+        const text = tr.innerText.toLowerCase();
+        const matchesSearch = !query || text.includes(query);
+        const isViolation = tr.dataset.isViolation === 'true';
+        const hasMismatch = tr.dataset.hasMismatch === 'true';
+
+        let matchesFilter = true;
+        if (filterMode === 'violations') {
+          matchesFilter = isViolation;
+        } else if (filterMode === 'mismatches') {
+          matchesFilter = (isViolation || hasMismatch);
+        }
+
+        if (matchesSearch && matchesFilter) {
+          tr.style.display = '';
+        } else {
+          tr.style.display = 'none';
+        }
+      });
+    }
+
+    tableSearch.addEventListener('input', applyFilters);
+    filterSelect.addEventListener('change', applyFilters);
+
+    // Interactive Column Width Resizing
+    function initTableColumnResizing() {
+      const table = document.getElementById('audited-table');
+      if (!table) return;
+      const thElements = table.querySelectorAll('thead th');
+
+      const defaultWidths = [
+        60,  // Row
+        160, // Process
+        180, // Potential Failure Mode
+        200, // Potential Effects
+        60,  // Sev
+        75,  // Pred Sev
+        220, // Sev Reasoning
+        60,  // Occ
+        220, // Current Detection Controls
+        60,  // Det
+        75,  // Pred Det
+        240, // Det Reasoning
+        65,  // RPN
+        75,  // New RPN
+        110, // D-P Gap
+        90,  // Priority Level
+        140  // Pred Priority Level
+      ];
+
+      function applyWidths() {
+        thElements.forEach((th, idx) => {
+          const w = defaultWidths[idx] || 120;
+          th.style.width = `${w}px`;
+          th.style.minWidth = `${w}px`;
+        });
+      }
+
+      applyWidths();
+
+      thElements.forEach((th, index) => {
+        const existing = th.querySelector('.resizer-handle');
+        if (existing) existing.remove();
+
+        const resizer = document.createElement('div');
+        resizer.className = 'resizer-handle';
+        resizer.setAttribute('title', 'Drag to resize column width. Double-click to reset.');
+        th.appendChild(resizer);
+
+        let startX = 0;
+        let startWidth = 0;
+
+        resizer.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          startX = e.pageX;
+          startWidth = th.offsetWidth;
+          resizer.classList.add('is-resizing');
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+
+          const onMouseMove = (moveEvent) => {
+            const delta = moveEvent.pageX - startX;
+            const newWidth = Math.max(40, startWidth + delta);
+            th.style.width = `${newWidth}px`;
+            th.style.minWidth = `${newWidth}px`;
+          };
+
+          const onMouseUp = () => {
+            resizer.classList.remove('is-resizing');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          };
+
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+
+        resizer.addEventListener('dblclick', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const defaultW = defaultWidths[index] || 120;
+          th.style.width = `${defaultW}px`;
+          th.style.minWidth = `${defaultW}px`;
+        });
+      });
+
+      const btnResetCols = document.getElementById('btn-reset-cols');
+      if (btnResetCols) {
+        btnResetCols.addEventListener('click', applyWidths);
+      }
+    }
+
+    // Initialize Column Resizing
+    initTableColumnResizing();
+  </script>
+</body>
+</html>
